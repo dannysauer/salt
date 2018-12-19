@@ -1,5 +1,6 @@
 include:
   - etc-hosts
+  - crypto
 
 {% set names = [salt.caasp_pillar.get('dashboard_external_fqdn'),
                 salt.caasp_pillar.get('dashboard')] %}

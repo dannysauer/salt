@@ -2,9 +2,6 @@ include:
   - etc-hosts
   - crypto
 
-{% set names = [salt.caasp_pillar.get('dashboard_external_fqdn'),
-                salt.caasp_pillar.get('dashboard')] %}
-
 {% if salt.caasp_pillar.get('external_cert:velum:cert', False)
   and salt.caasp_pillar.get('external_cert:velum:key',  False)
 %}
@@ -24,6 +21,9 @@ include:
     - contents_pillar: external_cert:velum:key
     
 {% else %}
+
+{% set names = [salt.caasp_pillar.get('dashboard_external_fqdn'),
+                salt.caasp_pillar.get('dashboard')] %}
 
 {% from '_macros/certs.jinja' import alt_names, certs with context %}
 {{ certs("velum:" + grains['nodename'],

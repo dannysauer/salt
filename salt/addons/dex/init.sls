@@ -3,8 +3,27 @@ include:
   - kubectl-config
   - kube-apiserver
 
+{% if salt.caasp_pillar.get('external_cert:dex:cert', False)
+  and salt.caasp_pillar.get('external_cert:dex:key',  False)
+%}
+
+{{ pillar['ssl']['dex_crt'] }}
+  file.managed:
+    - user:  root
+    - group: root
+    - mode: 0644
+    - contents_pillar: external_cert:velum:cert
+
+{{ pillar['ssl']['dex_key'] }}
+  file.managed:
+    - user:  root
+    - group: root
+    - mode: 0444
+    - contents_pillar: external_cert:velum:key
+    
+{% else %}
+
 {% from '_macros/certs.jinja' import alt_master_names, certs with context %}
-{% from '_macros/kubectl.jinja' import kubectl, kubectl_apply_dir_template with context %}
 
 {% set dex_alt_names = ["dex",
                         "dex.kube-system",
@@ -15,6 +34,10 @@ include:
          pillar['ssl']['dex_key'],
          cn = 'Dex',
          extra_alt_names = alt_master_names(dex_alt_names)) }}
+
+{% endif %}
+
+{% from '_macros/kubectl.jinja' import kubectl, kubectl_apply_dir_template with context %}
 
 # The following files need to be explicitly copied over *before*
 # kubectl_apply_dir_templates runs. Otherwise one of the templates attempts to

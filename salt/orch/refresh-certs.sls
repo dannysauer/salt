@@ -29,7 +29,7 @@ update_mine:
 
 ################################################################################
 # update the CA list
-update_ca_list
+update_ca_list:
   salt.state:
     # all impacted machines
     - tgt: {{ updates_all_target }}
@@ -52,21 +52,22 @@ update_certs_velum:
     - kwarg:
         queue: True
     - sls:
-      - velum
+      - velum    # check cert
+      - haproxy  # reload haproxy on change
     - require:
-      - salt: cert
+      - salt: update_ca_list
 
-#update_certs_dex:
-#  salt.state:
-#    # TODO: is there a target definition for where Dex should be?
-#    - tgt: {{ updates_all_target + ' and P@roles:(kube-(master|minion))' }}
-#    - tgt_type: compound
-#    - kwarg:
-#        queue: True
-#    - sls:
-#      - addons.dex
-#    - require:
-#      - salt: cert
+update_certs_dex:
+  salt.state:
+    # TODO: is there a target definition for where Dex should be? Yes, the "super master"
+    - tgt: {{ updates_all_target + ' and P@roles:(kube-(master|minion))' }}
+    - tgt_type: compound
+    - kwarg:
+        queue: True
+    - sls:
+      - addons.dex
+    - require:
+      - salt: update_ca_list
 
 #update_certs_kubeapi:
 #  salt.state:
@@ -78,5 +79,5 @@ update_certs_velum:
 #    - sls:
 #      - #TODO
 #    - require:
-#      - salt: cert
+#      - salt: update_ca_list
 {% endif %}

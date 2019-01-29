@@ -2,7 +2,9 @@ include:
   - ca-cert
   - cert
   - etc-hosts
-{% if not salt.caasp_nodes.is_admin_node() %}
+{% if salt.caasp_nodes.is_admin_node() %}
+  - velum
+{% else %}
 # This state is executed also on the admin node. On the admin
 # node we cannot require the kubelet state otherwise the node will
 # join the kubernetes cluster and some system workloads might be
@@ -83,7 +85,9 @@ haproxy-restart:
     - onchanges:
       - caasp_file: haproxy
       - file: /etc/caasp/haproxy/haproxy.cfg
-{% if not salt.caasp_nodes.is_admin_node() %}
+{% if salt.caasp_nodes.is_admin_node() %}
+      - file: {{ pillar['ssl']['velum_bundle'] }}
+{% else %}
     - require:
       - service: kubelet
       {%- if not salt.caasp_registry.use_registry_images() %}
@@ -119,7 +123,7 @@ wait-for-haproxy:
     # retry just in case the API server returns a transient error
     - retry:
         attempts: 3
-    - ca_bundle:  {{ pillar['ssl']['ca_file'] }}
+    - ca_bundle:  {{ pillar['ssl']['sys_ca_bundle'] }}
     - status:     200
     - opts:
         http_request_timeout: 30

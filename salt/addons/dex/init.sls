@@ -7,19 +7,30 @@ include:
   and salt.caasp_pillar.get('external_cert:dex:key',  False)
 %}
 
-{{ pillar['ssl']['dex_crt'] }}
-  file.managed:
-    - user:  root
-    - group: root
-    - mode: 0644
-    - contents_pillar: external_cert:velum:cert
+{% from '_macros/certs.jinja' import external_pillar_certs with context %}
 
-{{ pillar['ssl']['dex_key'] }}
-  file.managed:
-    - user:  root
-    - group: root
-    - mode: 0444
-    - contents_pillar: external_cert:velum:key
+{{ external_pillar_certs(
+      pillar['ssl']['dex_crt'],
+      'external_cert:dex:cert',
+      pillar['ssl']['dex_key'],
+      'external_cert:dex:key',
+      False
+
+) }}
+
+#{{ pillar['ssl']['dex_crt'] }}:
+#  file.managed:
+#    - user:  root
+#    - group: root
+#    - mode: 0644
+#    - contents_pillar: external_cert:velum:cert
+#
+#{{ pillar['ssl']['dex_key'] }}:
+#  file.managed:
+#    - user:  root
+#    - group: root
+#    - mode: 0444
+#    - contents_pillar: external_cert:velum:key
     
 {% else %}
 

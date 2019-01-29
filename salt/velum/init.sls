@@ -6,19 +6,30 @@ include:
   and salt.caasp_pillar.get('external_cert:velum:key',  False)
 %}
 
-{{ pillar['ssl']['velum_crt'] }}
-  file.managed:
-    - user:  root
-    - group: root
-    - mode: 0644
-    - contents_pillar: external_cert:velum:cert
+{% from '_macros/certs.jinja' import external_pillar_certs with context %}
 
-{{ pillar['ssl']['velum_key'] }}
-  file.managed:
-    - user:  root
-    - group: root
-    - mode: 0444
-    - contents_pillar: external_cert:velum:key
+{{ external_pillar_certs(
+      pillar['ssl']['velum_crt'],
+      'external_cert:velum:cert',
+      pillar['ssl']['velum_key'],
+      'external_cert:velum:key',
+      bundle=pillar['ssl']['velum_bundle']
+
+) }}
+
+#{{ pillar['ssl']['velum_crt'] }}:
+#  file.managed:
+#    - user:  root
+#    - group: root
+#    - mode: 0644
+#    - contents_pillar: external_cert:velum:cert
+#
+#{{ pillar['ssl']['velum_key'] }}:
+#  file.managed:
+#    - user:  root
+#    - group: root
+#    - mode: 0444
+#    - contents_pillar: external_cert:velum:key
     
 {% else %}
 
@@ -30,6 +41,7 @@ include:
          pillar['ssl']['velum_crt'],
          pillar['ssl']['velum_key'],
          cn = grains['nodename'],
-         extra_alt_names = alt_names(names)) }}
+         extra_alt_names = alt_names(names),
+         bundle=pillar['ssl']['velum_bundle']) }}
 
 {% endif %}

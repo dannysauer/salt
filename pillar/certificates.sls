@@ -21,6 +21,8 @@ ssl:
   crt_file: '/etc/pki/minion.crt'
   key_file: '/etc/pki/minion.key'
 
+  sys_ca_bundle: '/var/lib/ca-certificates/ca-bundle.pem'
+
   crt_dir: '/etc/pki'
   key_dir: '/etc/pki'
 

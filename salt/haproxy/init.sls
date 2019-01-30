@@ -88,6 +88,7 @@ haproxy-restart:
 {% if salt.caasp_nodes.is_admin_node() %}
       - file: {{ pillar['ssl']['velum_bundle'] }}
 {% else %}
+      - file: {{ pillar['ssl']['kube_apiserver_proxy_bundle'] }}
     - require:
       - service: kubelet
       {%- if not salt.caasp_registry.use_registry_images() %}

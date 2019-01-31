@@ -36,13 +36,32 @@ include:
     - makedirs: True
     - dir_mode: 755
 
+{% if salt.caasp_pillar.get('external_cert:kube_api:cert', False)
+  and salt.caasp_pillar.get('external_cert:kube_api:key',  False)
+%}
+
+{% from '_macros/certs.jinja' import external_pillar_certs with context %}
+
+{{ external_pillar_certs(
+      pillar['ssl']['kube_apiserver_proxy_crt'],
+      'external_cert:kube_api:cert',
+      pillar['ssl']['kube_apiserver_proxy_key'],
+      'external_cert:kube_api:key',
+      bundle=pillar['ssl']['kube_apiserver_proxy_bundle']
+) }}
+
+{% else %}
+
 {% from '_macros/certs.jinja' import certs, alt_master_names with context %}
 {{ certs("kube-apiserver-proxy",
          pillar['ssl']['kube_apiserver_proxy_crt'],
          pillar['ssl']['kube_apiserver_proxy_key'],
          cn = grains['nodename'] + '-proxy',
          o = pillar['certificate_information']['subject_properties']['O'],
-         extra_alt_names = alt_master_names()) }}
+         extra_alt_names = alt_master_names(),
+         bundle=pillar['ssl']['kube_apiserver_proxy_bundle']) }}
+
+{% endif %}
 
 haproxy:
   caasp_file.managed:

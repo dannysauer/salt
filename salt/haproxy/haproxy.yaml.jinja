@@ -31,8 +31,8 @@ spec:
         - name: ca-certificate
           mountPath: /etc/pki/ca.crt
           readOnly: True
-        - mountPath: /var/lib/ca-certificates/ca-bundle.pem
-          name: ca-bundle
+        - mountPath: {{ salt['file.dirname']( pillar['ssl']['sys_ca_bundle'] ) }}
+          name: ca-bundle-dir
           readOnly: True
         - name: kubernetes-proxy-bundle-certificate
           mountPath: {{ pillar['ssl']['kube_apiserver_proxy_bundle'] }}
@@ -58,9 +58,9 @@ spec:
         path: {{ pillar['ssl']['ca_file'] }}
 {% endif %}
         type: FileOrCreate
-    - name: ca-bundle
+    - name: ca-bundle-dir
       hostPath:
-        path: {{ pillar['ssl']['sys_ca_bundle'] }}
+        path: {{ salt['file.dirname']( pillar['ssl']['sys_ca_bundle'] ) }}
     - name: kubernetes-proxy-bundle-certificate
       hostPath:
         path: {{ pillar['ssl']['kube_apiserver_proxy_bundle'] }}

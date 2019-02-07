@@ -52,6 +52,11 @@ ssl:
   kube_apiserver_proxy_crt: '/etc/pki/kube-apiserver-proxy.crt'
   kube_apiserver_proxy_bundle: '/etc/pki/private/kube-apiserver-proxy-bundle.pem'
 
+  # haproxy client auth to API server
+  kube_apiserver_haproxy_key: '/etc/pki/private/kube-apiserver-haproxy.key'
+  kube_apiserver_haproxy_crt: '/etc/pki/kube-apiserver-haproxy.crt'
+  kube_apiserver_haproxy_bundle: '/etc/pki/private/kube-apiserver-haproxy-bundle.pem'
+
   kube_scheduler_key: '/etc/pki/kube-scheduler.key'
   kube_scheduler_crt: '/etc/pki/kube-scheduler.crt'
 

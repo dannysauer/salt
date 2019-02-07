@@ -12,11 +12,14 @@ include:
 # not being configured properly, and that would lead to slow and always
 # failing orchestrations.
   - kubelet
+  - kube-apiserver
   - {{ salt['pillar.get']('cri:chosen', 'docker') }}
   {%- if not salt.caasp_registry.use_registry_images() %}
   - container-feeder
   {%- endif %}
 {% endif %}
+
+{% from '_macros/certs.jinja' import certs, alt_master_names with context %}
 
 /etc/caasp/haproxy:
   file.directory:
@@ -52,7 +55,6 @@ include:
 
 {% else %}
 
-{% from '_macros/certs.jinja' import certs, alt_master_names with context %}
 {{ certs("kube-apiserver-proxy",
          pillar['ssl']['kube_apiserver_proxy_crt'],
          pillar['ssl']['kube_apiserver_proxy_key'],
@@ -62,6 +64,14 @@ include:
          bundle=pillar['ssl']['kube_apiserver_proxy_bundle']) }}
 
 {% endif %}
+
+# HAproxy client auth cert
+{{ certs("kube-apiserver-haproxy",
+         pillar['ssl']['kube_apiserver_haproxy_crt'],
+         pillar['ssl']['kube_apiserver_haproxy_key'],
+         cn = grains['nodename'] + '-haproxy',
+         o = pillar['certificate_information']['subject_properties']['O'],
+         bundle=pillar['ssl']['kube_apiserver_haproxy_bundle']) }}
 
 haproxy:
   caasp_file.managed:
@@ -108,6 +118,7 @@ haproxy-restart:
       - file: {{ pillar['ssl']['velum_bundle'] }}
 {% else %}
       - file: {{ pillar['ssl']['kube_apiserver_proxy_bundle'] }}
+      - file: {{ pillar['ssl']['kube_apiserver_haproxy_bundle'] }}
     - require:
       - service: kubelet
       {%- if not salt.caasp_registry.use_registry_images() %}

@@ -12,7 +12,6 @@ include:
          cn = grains['nodename'],
          o = pillar['certificate_information']['subject_properties']['O']) }}
 
-{% from '_macros/certs.jinja' import certs with context %}
 {{ certs("kube-apiserver-proxy-client",
          pillar['ssl']['kube_apiserver_proxy_client_crt'],
          pillar['ssl']['kube_apiserver_proxy_client_key'],

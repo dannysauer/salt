@@ -37,6 +37,9 @@ spec:
         - name: kubernetes-proxy-bundle-certificate
           mountPath: {{ pillar['ssl']['kube_apiserver_proxy_bundle'] }}
           readOnly: True
+        - name: kubernetes-apiserver-haproxy-client-bundle
+          mountPath: {{ pillar['ssl']['kube_apiserver_haproxy_bundle'] }}
+          readOnly: True
 {% if "admin" in salt['grains.get']('roles', []) %}
         - name: etc-hosts
           mountPath: /etc/hosts
@@ -65,6 +68,10 @@ spec:
       hostPath:
         path: {{ pillar['ssl']['kube_apiserver_proxy_bundle'] }}
         type: FileOrCreate
+    - name: kubernetes-apiserver-haproxy-client-bundle
+      hostPath:
+        path: {{ pillar['ssl']['kube_apiserver_haproxy_bundle'] }}
+        type: File
 {% if "admin" in salt['grains.get']('roles', []) %}
     - name: etc-hosts
       hostPath:

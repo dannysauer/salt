@@ -18,20 +18,6 @@ include:
 
 ) }}
 
-#{{ pillar['ssl']['dex_crt'] }}:
-#  file.managed:
-#    - user:  root
-#    - group: root
-#    - mode: 0644
-#    - contents_pillar: external_cert:velum:cert
-#
-#{{ pillar['ssl']['dex_key'] }}:
-#  file.managed:
-#    - user:  root
-#    - group: root
-#    - mode: 0444
-#    - contents_pillar: external_cert:velum:key
-    
 {% else %}
 
 {% from '_macros/certs.jinja' import alt_master_names, certs with context %}

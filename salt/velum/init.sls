@@ -17,20 +17,6 @@ include:
 
 ) }}
 
-#{{ pillar['ssl']['velum_crt'] }}:
-#  file.managed:
-#    - user:  root
-#    - group: root
-#    - mode: 0644
-#    - contents_pillar: external_cert:velum:cert
-#
-#{{ pillar['ssl']['velum_key'] }}:
-#  file.managed:
-#    - user:  root
-#    - group: root
-#    - mode: 0444
-#    - contents_pillar: external_cert:velum:key
-    
 {% else %}
 
 {% set names = [salt.caasp_pillar.get('dashboard_external_fqdn'),

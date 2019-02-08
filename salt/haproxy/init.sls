@@ -12,7 +12,6 @@ include:
 # not being configured properly, and that would lead to slow and always
 # failing orchestrations.
   - kubelet
-  - kube-apiserver
   - {{ salt['pillar.get']('cri:chosen', 'docker') }}
   {%- if not salt.caasp_registry.use_registry_images() %}
   - container-feeder

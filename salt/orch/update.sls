@@ -33,6 +33,10 @@
 {%- set all_masters = salt.saltutil.runner('mine.get', tgt=is_master_tgt, fun='network.interfaces', tgt_type='compound').keys() %}
 {%- set super_master = all_masters|first %}
 
+{#- Fetch all the nodes which have explicitely disabled the timer. #}
+{#- These won't be reenabled at the end of thi orchestration #}
+{%- set enabled_timer_nodes_list = salt.caasp_nodes.get_with_expected_ret_value('saltutil.cmd', True, tgt='*', fun='service.enabled', arg=['transactional-update.timer']) %}
+
 # Ensure all nodes with updates are marked as upgrading. This will reduce the time window in which
 # the update-etc-hosts orchestration can run in between machine restarts.
 set-update-grain:
@@ -54,12 +58,24 @@ remove-uncordon-grain:
     - require:
       - set-update-grain
 
+# Disable the update timer for all nodes.
+disable-transactional-update-timer:
+  salt.function:
+    - tgt: '{{ is_responsive_node_tgt }}'
+    - tgt_type: compound
+    - batch: 3
+    - name: service.disable
+    - arg:
+      - transactional-update.timer
+    - require:
+      - set-update-grain
+
 # this will load the _pillars/velum.py on the master
 sync-pillar:
   salt.runner:
     - name: saltutil.sync_pillar
     - require:
-      - remove-uncordon-grain
+      - disable-transactional-update-timer
 
 update-data:
   salt.function:
@@ -556,6 +572,17 @@ remove-caasp-fqdn-grain:
         destructive: True
     - require:
       - admin-wait-for-services
+
+reenable-transactional-update-timer:
+  salt.function:
+    - tgt: '{{ enabled_timer_nodes_list|join(",") }}'
+    - tgt_type: list
+    - batch: 3
+    - name: service.enable
+    - arg:
+        - transactional-update.timer
+    - require:
+      - remove-caasp-fqdn-grain
 
 remove-update-grain:
   salt.function:

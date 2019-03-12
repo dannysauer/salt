@@ -24,6 +24,7 @@
     - onchanges:
       - file: /etc/systemd/system/transactional-update.timer.d/10-increase-update-speed.conf
 
+{% if not salt['grains.get']('update_in_progress')  %}
 transactional-update.timer:
   service.running:
     - name: transactional-update.timer
@@ -31,6 +32,7 @@ transactional-update.timer:
     - watch:
       - file: /etc/systemd/system/transactional-update.timer.d/10-increase-update-speed.conf
       - file: /etc/transactional-update.conf
+{% endif %}
 
 /etc/transactional-update.conf:
   file.managed:

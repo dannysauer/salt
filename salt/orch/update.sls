@@ -44,12 +44,22 @@ set-update-grain:
       - update_in_progress
       - true
 
+remove-uncordon-grain:
+  salt.function:
+    - tgt: '{{ is_responsive_node_tgt }}'
+    - tgt_type: compound
+    - name: grains.remove
+    - arg:
+      - kubelet:should_uncordon
+    - require:
+      - set-update-grain
+
 # this will load the _pillars/velum.py on the master
 sync-pillar:
   salt.runner:
     - name: saltutil.sync_pillar
     - require:
-      - set-update-grain
+      - remove-uncordon-grain
 
 update-data:
   salt.function:

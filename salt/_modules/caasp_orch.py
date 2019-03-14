@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from caasp_log import debug
 
 
 def __virtual__():
@@ -14,5 +15,5 @@ def sync_all():
     # __utils__['caasp_log.debug']('orch: refreshing all')
     # __salt__['saltutil.sync_all'](refresh=True)
 
-    __utils__['caasp_log.debug']('orch: synchronizing the mine')
+    debug('orch: synchronizing the mine')
     __salt__['saltutil.runner']('mine.update', tgt='*', clear=True)

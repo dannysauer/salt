@@ -1,3 +1,6 @@
+{#- Make sure we start with an updated mine #}
+{%- set _ = salt.caasp_orch.sync_all() %}
+
 {#- Get a list of nodes seem to be down or unresponsive #}
 {#- This sends a "are you still there?" message to all #}
 {#- the nodes and wait for a response, so it takes some time. #}
@@ -30,7 +33,7 @@
 {%- set is_updateable_worker_tgt = is_updateable_tgt + ' and ' + is_worker_tgt %}
 {%- set is_updateable_node_tgt   = '( ' + is_updateable_master_tgt + ' ) or ( ' + is_updateable_worker_tgt + ' )' %}
 
-{%- set all_masters = salt.saltutil.runner('mine.get', tgt=is_master_tgt, fun='network.interfaces', tgt_type='compound').keys() %}
+{%- set all_masters = salt.caasp_nodes.get_with_expr(is_master_tgt) %}
 {%- set super_master = all_masters|first %}
 
 # Ensure all nodes with updates are marked as upgrading. This will reduce the time window in which
@@ -195,8 +198,8 @@ early-services-setup:
       - etcd-setup
 
 # Get list of masters needing reboot
-{%- set masters = salt.saltutil.runner('mine.get', tgt=is_updateable_master_tgt, fun='network.interfaces', tgt_type='compound') %}
-{%- for master_id in masters.keys() %}
+{%- set masters = salt.caasp_nodes.get_with_expr(is_updateable_master_tgt) %}
+{%- for master_id in masters %}
 
 # Kubelet needs other services, e.g. the cri, up + running. This provide a way
 # to ensure kubelet is stopped before any other services.
@@ -304,13 +307,13 @@ all-masters-post-start-services:
       - kubelet.update-post-start-services
     - require:
       - early-services-setup
-{%- for master_id in masters.keys() %}
+{%- for master_id in masters %}
       - {{ master_id }}-start-services
 {%- endfor %}
 
 # We remove the grain when we have the last reference to using that grain.
 # Otherwise an incomplete subset of minions might be targeted.
-{%- for master_id in masters.keys() %}
+{%- for master_id in masters %}
 {{ master_id }}-reboot-needed-grain:
   salt.function:
     - tgt: '{{ master_id }}'
@@ -344,13 +347,13 @@ all-workers-2.0-pre-clean-shutdown:
         - migrations.2-3.haproxy
     - require:
       - all-masters-post-start-services
-{%- for master_id in masters.keys() %}
+{%- for master_id in masters %}
       - {{ master_id }}-reboot-needed-grain
 {%- endfor %}
 # END NOTE: Remove me for 4.0
 
-{%- set workers = salt.saltutil.runner('mine.get', tgt=is_updateable_worker_tgt, fun='network.interfaces', tgt_type='compound') %}
-{%- for worker_id, ip in workers.items() %}
+{%- set workers = salt.caasp_nodes.get_with_expr(is_updateable_worker_tgt) %}
+{%- for worker_id in workers %}
 
 # Call the node clean shutdown script
 # Kubelet needs other services, e.g. the cri, up + running. This provide a way
@@ -364,7 +367,7 @@ all-workers-2.0-pre-clean-shutdown:
     - require:
       - all-workers-2.0-pre-clean-shutdown
       # wait until all the masters have been updated
-{%- for master_id in masters.keys() %}
+{%- for master_id in masters %}
       - {{ master_id }}-reboot-needed-grain
 {%- endfor %}
 
@@ -499,12 +502,12 @@ kubelet-setup:
     - require:
       - all-masters-post-start-services
 # wait until all the machines in the cluster have been upgraded
-{%- for master_id in masters.keys() %}
+{%- for master_id in masters %}
       # We use the last state within the masters loop, which is different
       # on masters and minions.
       - {{ master_id }}-reboot-needed-grain
 {%- endfor %}
-{%- for worker_id in workers.keys() %}
+{%- for worker_id in workers %}
       - {{ worker_id }}-remove-update-grain
 {%- endfor %}
 

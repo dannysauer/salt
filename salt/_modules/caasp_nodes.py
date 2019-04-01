@@ -189,6 +189,17 @@ def get_with_expr(expr, **kwargs):
     return res
 
 
+def get_with_expected_ret_value(expr, val, **kwargs):
+    '''
+    Utility function for getting a list of nodes which match a given return
+    value from Salt.
+    '''
+    res = __salt__[expr](**kwargs)
+    ret = {k: v for k, v in res.iteritems() if v['ret'] == val}
+    debug('%s', ret)
+    return ret
+
+
 def get_from_args_or_with_expr(arg_name, args_dict, *args, **kwargs):
     '''
     Utility function for getting a list of nodes from either the kwargs

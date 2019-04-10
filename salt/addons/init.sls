@@ -1,5 +1,6 @@
 include:
-  - kubectl-config
+  - kube-apiserver
+  - kubelet
 
 /etc/kubernetes/addons:
   file.directory:

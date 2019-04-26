@@ -84,10 +84,10 @@ def _makedirs(path):
             raise
 
 
-# returns a list resulting of appending `lst2` to `lst1`, removing duplicates on
-# both lists (not preserving order on any of them) and removing empty elements on
-# the result. The result will be sorted as well
-def _sorted_append(lst1, lst2):
+# returns a list resulting of concatenating `lst2` with `lst1`, removing
+# duplicates on both lists (not preserving order on any of them) and removing
+# empty elements on the result. The result will be sorted as well
+def _sorted_concat(lst1, lst2):
     res = list(set(lst1) | set(lst2))  # join both lists (without dups)
     res = [x for x in res if x]  # remove empty strings
     res.sort()  # sort the result (for determinism)
@@ -169,7 +169,7 @@ def _load_hosts_file(hosts, filename, marker_start=None, marker_end=None):
 
 # add a (list of) name(s) to a (maybe existing) IP
 # it will remove duplicates, sort names, etc...
-def _add_names(hosts, ips, names, insert_fun=_sorted_append):
+def _add_names(hosts, ips, names, insert_fun=_sorted_concat):
     if not isinstance(names, list):
         names = [names]
     if not isinstance(ips, list):
@@ -183,7 +183,7 @@ def _add_names(hosts, ips, names, insert_fun=_sorted_append):
             hosts[ip] = insert_fun(hosts[ip], names)
 
 
-def _add_names_for(hosts, nodes_dict, infra_domain, insert_fun=_sorted_append):
+def _add_names_for(hosts, nodes_dict, infra_domain, insert_fun=_sorted_concat):
     for id, ifaces in nodes_dict.items():
         ip = __salt__['caasp_net.get_primary_ip'](host=id, ifaces=ifaces)
         if ip:

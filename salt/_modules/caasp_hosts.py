@@ -340,13 +340,6 @@ def managed(name=HOSTS_FILE,
         if "admin" in this_roles:
             _add_names(hosts, '127.0.0.1', fqdn('ldap'))
 
-        # try to make Salt happy by adding an ipv6 entry
-        # for the local host (not really used for anything else)
-        this_hostname = __salt__['grains.get']('localhost', '')
-        _add_names(hosts, ['127.0.0.1', '::1'],
-                   [this_hostname, fqdn(this_hostname)])
-
-        __utils__['caasp_log.debug']('hosts: adding entry for the API server at 127.0.0.1')
         _add_names(hosts, '127.0.0.1', ['api', fqdn('api')])
 
     except Exception as e:
@@ -358,9 +351,17 @@ def managed(name=HOSTS_FILE,
         names.sort()
 
     # prepend the nodenames at the beginning of each entry
+    # these order-dependent calls must happen *after* the sort function above
     try:
         for nodes in [admin_nodes, master_nodes, worker_nodes, other_nodes]:
             _add_nodenames_for(hosts, nodes, infra_domain)
+
+        # try to make Salt happy by adding an ipv6 entry
+        # also put FQDN first on loopback entries for figuring out local name
+        this_hostname = __salt__['grains.get']('localhost', '')
+        _add_names(hosts, ['127.0.0.1', '::1'],
+                   [fqdn(this_hostname), this_hostname],
+                   _unsorted_prepend)
     except Exception as e:
         raise EtcHostsRuntimeException(
             'Could not add nodenames entries in /etc/hosts: {}'.format(e))
